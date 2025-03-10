@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from ortools.sat.python import cp_model
 
 app = Flask(__name__)
+CORS(app)  # Autorise toutes les origines
 
 def solve_scheduling(data):
     model = cp_model.CpModel()
@@ -19,7 +21,7 @@ def solve_scheduling(data):
     # Variables de décision pour chaque examen
     exam_start = {}  # instant global (0 à D*H - durée)
     exam_day = {}    # jour de l'examen (0 à D-1)
-    exam_slot = {}   # créneau dans le jour (0 à H-1)
+    exam_slot = {}   # créneau dans la journée (0 à H-1)
     exam_room = {}   # salle attribuée (indice dans la liste rooms)
     
     for e, exam in enumerate(exams):
@@ -107,7 +109,7 @@ def solve_scheduling(data):
             exam = exams[e]
             result = {
                 "name": exam.get("name"),
-                "filiere": exam.get("filiere"),  # champ ajouté même s'il n'est pas utilisé dans la modélisation
+                "filiere": exam.get("filiere"),
                 "promotion": exam.get("promotion"),
                 "day": solver.Value(exam_day[e]),
                 "slot": solver.Value(exam_slot[e]),
