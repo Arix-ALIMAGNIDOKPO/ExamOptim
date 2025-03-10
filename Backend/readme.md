@@ -21,4 +21,4 @@ Installer les dépendances :
 Utilisation
 Pour lancer l'API Flask en mode développement :
 
-    python app.py
+    python api.py
