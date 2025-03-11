@@ -4,6 +4,39 @@ from ortools.sat.python import cp_model
 
 app = Flask(__name__)
 CORS(app)  # Autorise toutes les origines
+"""
+Structure générale
+------------------
+1. Variables de Décision
+   - exam_start[e] : Début de l'examen e.
+   - exam_day[e]   : Jour de l'examen, dérivé de exam_start par division entière par le nombre de créneaux par jour.
+   - exam_slot[e]  : Créneau horaire dans le jour, dérivé de exam_start par l'opération modulo.
+   - exam_room[e]  : Indice de la salle attribuée à l'examen, choisi parmi celles dont la capacité est suffisante.
+
+2. Contraintes
+   a. Contraintes de Temps et Positionnement :
+      - Chaque examen doit démarrer suffisamment tôt pour terminer dans le même jour.
+      - La décomposition de exam_start en exam_day et exam_slot permet de gérer la planification sur plusieurs jours.
+      - On impose que "exam_slot + durée" ne dépasse pas le nombre total de créneaux par jour.
+   
+   b. Contrainte de Non-Chevauchement dans la Même Salle :
+      - Pour deux examens dans la même salle et le même jour, ils ne peuvent pas se chevaucher.
+      - Une marge (margin) est ajoutée entre la fin d’un examen et le début d’un autre.
+      - Deux variables booléennes (i_before_j et j_before_i) indiquent l'ordre des examens.
+   
+   c. Contrainte sur les Promotions :
+      - Deux examens appartenant à des promotions différentes ne peuvent pas se tenir simultanément le même jour.
+      - La contrainte ici est similaire à la non-interférence mais sans marge.
+
+3. Fonction Objectif
+   - L'objectif est de minimiser la période totale d'examen, calculée en nombre de créneaux.
+   - On définit start_min (le début le plus tôt) et end_max (la fin la plus tardive), et la période est end_max - start_min.
+   - Minimiser cette période tend à regrouper les examens de façon compacte, ce qui reduis le nombre de jours utilisés.
+
+4. API Endpoints
+   - /api/schedule (POST) : Reçoit les données JSON de planification et renvoie le planning.
+   - /api/schedule/format (GET) : Fournit un exemple de format JSON attendu.
+"""
 
 def solve_scheduling(data):
     model = cp_model.CpModel()
